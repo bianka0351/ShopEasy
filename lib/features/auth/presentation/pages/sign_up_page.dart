@@ -64,7 +64,7 @@ class _SignUpPageState extends State<SignUpPage> {
       email: email,
       password: password,
     );
-
+    await storageService.setLoggedIn(true);
     _showMessage('Account created successfully!');
     Navigator.pushNamedAndRemoveUntil(
       context,
