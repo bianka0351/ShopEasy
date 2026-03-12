@@ -4,7 +4,7 @@ import 'package:shop_easy/features/home/data/models/product_model.dart';
 class ProductDatasource {
   Future<List<ProductModel>> getProducts() async {
     final getApi = GetApi(
-      url: 'https://dummyjson.com/products',
+      url: 'https://fakestoreapi.com/products',
       fromJson: productModelFromJson,
     );
 

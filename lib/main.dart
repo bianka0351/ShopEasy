@@ -14,6 +14,7 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
   Hive.registerAdapter(CartItemAdapter());
   await Hive.openBox<CartItem>('cartBox');
   runApp(const MainApp());

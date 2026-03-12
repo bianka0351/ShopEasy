@@ -8,42 +8,81 @@ part 'product_state.dart';
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository repository;
   List<ProductModel> _allProducts = [];
+
   ProductBloc(this.repository) : super(ProductInitial()) {
-    /// LOAD PRODUCTS
+    /// تحميل المنتجات
     on<LoadProductsEvent>((event, emit) async {
       emit(ProductLoading());
+      final result = await repository.getProducts();
+      result.fold((failure) => emit(ProductError('Failed to load products')), (
+        success,
+      ) {
+        _allProducts = success;
 
-      final products = await repository.getProducts();
-      products.fold(
-        (failure) {
-          emit(ProductError('Failed to load products'));
-        },
-        (success) {
-          _allProducts = success;
-          emit(ProductLoaded(success));
-        },
-      );
+        // استخراج الفئات مع إضافة "All"
+        final categories =
+            ['All'] + _allProducts.map((p) => p.category.name).toSet().toList();
+        emit(
+          ProductLoaded(
+            allProducts: _allProducts,
+            displayedProducts: _allProducts,
+            categories: categories,
+            selectedCategory: 'All',
+          ),
+        );
+      });
     });
 
-    /// SEARCH PRODUCTS
+    /// البحث
     on<SearchProductsEvent>((event, emit) {
-      final query = event.query.toLowerCase().trim();
-
-      if (query.isEmpty) {
-        emit(ProductLoaded(_allProducts));
-        return;
+      if (state is ProductLoaded) {
+        final currentState = state as ProductLoaded;
+        emit(
+          currentState.copyWith(
+            searchQuery: event.query,
+            displayedProducts: _filterProducts(
+              allProducts: currentState.allProducts,
+              category: currentState.selectedCategory!,
+              query: event.query,
+            ),
+          ),
+        );
       }
-
-      final filteredProducts = _allProducts.where((product) {
-        final titleMatch = product.title.toLowerCase().contains(query);
-
-        final brandMatch =
-            product.brand?.toLowerCase().contains(query) ?? false;
-
-        return titleMatch || brandMatch;
-      }).toList();
-
-      emit(ProductLoaded(filteredProducts));
     });
+
+    /// فلترة حسب الفئة
+    on<FilterByCategoryEvent>((event, emit) {
+      if (state is ProductLoaded) {
+        final currentState = state as ProductLoaded;
+        final category = event.category ?? 'All'; // null تعني All
+        final filteredProducts = _filterProducts(
+          allProducts: currentState.allProducts,
+          category: category,
+          query: currentState.searchQuery,
+        );
+        emit(
+          currentState.copyWith(
+            selectedCategory: category,
+            displayedProducts: filteredProducts,
+          ),
+        );
+      }
+    });
+  }
+
+  /// دالة فلترة المنتجات
+  List<ProductModel> _filterProducts({
+    required List<ProductModel> allProducts,
+    required String category,
+    String? query,
+  }) {
+    return allProducts.where((p) {
+      final matchesCategory = category == 'All' || p.category.name == category;
+      final matchesQuery = query == null || query.isEmpty
+          ? true
+          : (p.title.toLowerCase().contains(query.toLowerCase()) ||
+                p.category.name.toLowerCase().contains(query.toLowerCase()));
+      return matchesCategory && matchesQuery;
+    }).toList();
   }
 }

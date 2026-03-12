@@ -8,18 +8,32 @@ import 'package:shop_easy/features/home/bloc/product_bloc.dart';
 import 'package:shop_easy/features/home/presentation/widgets/product_card.dart';
 import 'package:shop_easy/features/home/presentation/widgets/promo_banner_widget.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductBloc>().add(LoadProductsEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFE6EA),
+      backgroundColor: const Color(0xFFFFE6EA),
       appBar: AppBar(
-        backgroundColor: Color(0xFFFFE6EA),
+        backgroundColor: const Color(0xFFFFE6EA),
         title: Text(
           'ShopEasy',
-          style: AppFonts.notoBold(color: Color(0xFFD64545), fontSize: 24),
+          style: AppFonts.notoBold(
+            color: const Color(0xFFD64545),
+            fontSize: 24,
+          ),
         ),
         centerTitle: true,
         bottom: PreferredSize(
@@ -27,12 +41,11 @@ class HomePage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: CustomSearchBar(
+              controller: TextEditingController(),
+              hintText: 'Search',
               onChanged: (value) {
                 context.read<ProductBloc>().add(SearchProductsEvent(value));
               },
-
-              controller: TextEditingController(),
-              hintText: 'Search',
             ),
           ),
         ),
@@ -45,9 +58,8 @@ class HomePage extends StatelessWidget {
           if (state is ProductError) {
             return CustomErrorMessage(
               message: state.message,
-              onRetry: () {
-                context.read<ProductBloc>().add(LoadProductsEvent());
-              },
+              onRetry: () =>
+                  context.read<ProductBloc>().add(LoadProductsEvent()),
             );
           }
           if (state is ProductLoaded) {
@@ -57,27 +69,17 @@ class HomePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const PromoBannerWidget(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
+                  Text('Categories', style: AppFonts.notoBold(fontSize: 22)),
+                  const SizedBox(height: 10),
+                  _buildCategoryList(state),
+                  const SizedBox(height: 10),
                   Text(
-                    'Popular Products',
+                    'Trending Products',
                     style: AppFonts.notoBold(fontSize: 22),
                   ),
                   const SizedBox(height: 10),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: .7,
-                        ),
-                    itemCount: state.products.length,
-                    itemBuilder: (_, index) {
-                      return ProductCard(product: state.products[index]);
-                    },
-                  ),
+                  _buildProductGrid(state.displayedProducts),
                 ],
               ),
             );
@@ -86,5 +88,75 @@ class HomePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Widget _buildCategoryList(ProductLoaded state) {
+    final categories = state.categories;
+    return SizedBox(
+      height: 90,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = category == state.selectedCategory;
+          return GestureDetector(
+            onTap: () {
+              context.read<ProductBloc>().add(
+                FilterByCategoryEvent(category == 'All' ? null : category),
+              );
+            },
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: isSelected
+                      ? const Color(0xFFD64545)
+                      : const Color(0xFFD64545).withValues(alpha: 0.5),
+                  child: Icon(
+                    _getCategoryIcon(category),
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(category, style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductGrid(List products) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.7,
+      ),
+      itemCount: products.length,
+      itemBuilder: (_, index) => ProductCard(product: products[index]),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case "men_s_clothing":
+        return Icons.man;
+      case "women_s_clothing":
+        return Icons.woman;
+      case "jewelery":
+        return Icons.watch;
+      case "electronics":
+        return Icons.devices;
+      default:
+        return Icons.category;
+    }
   }
 }

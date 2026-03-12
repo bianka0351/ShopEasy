@@ -52,14 +52,13 @@ class ProductDetailsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   /// BRAND
-                  if (product.brand != null)
-                    Text(
-                      product.brand!,
-                      style: AppFonts.notoRegular(
-                        fontSize: 13,
-                        color: Colors.grey,
-                      ),
+                  Text(
+                    product.category.name,
+                    style: AppFonts.notoRegular(
+                      fontSize: 13,
+                      color: Colors.grey,
                     ),
+                  ),
 
                   const SizedBox(height: 6),
 

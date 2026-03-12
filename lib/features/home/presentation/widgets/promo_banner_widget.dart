@@ -24,14 +24,14 @@ class PromoBannerWidget extends StatelessWidget {
 
         // Friendly Text
         Text(
-          '✨ Discover your beauty essentials',
+          '✨ Shop the best for you',
           style: AppFonts.notoMedium(fontSize: 16),
         ),
 
         const SizedBox(height: 4),
 
         Text(
-          'Hand-picked products just for you',
+          'Your daily essentials, hand-picked',
           style: AppFonts.notoMedium(fontSize: 14, color: Colors.grey[600]),
         ),
       ],
