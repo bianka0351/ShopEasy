@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:shop_easy/core/services/hive_boxes.dart';
 import 'package:shop_easy/features/auth/presentation/widgets/main_button_widget.dart';
 import '../../data/models/cart_item_model.dart';
 import 'package:shop_easy/core/constants/app_fonts.dart';
@@ -11,7 +10,7 @@ class CartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Hive.openBox<CartItem>(HiveBoxes.cart),
+      future: Hive.openBox<CartItem>('cartBox'),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -20,7 +19,7 @@ class CartPage extends StatelessWidget {
           );
         }
 
-        final cartBox = Hive.box<CartItem>(HiveBoxes.cart);
+        final cartBox = Hive.box<CartItem>('cartBox');
 
         double subtotal = cartBox.values.fold(
           0.0,

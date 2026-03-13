@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shop_easy/core/constants/app_routes.dart';
+import 'package:shop_easy/features/cart/bloc/cart_bloc.dart';
 import 'package:shop_easy/features/cart/data/models/cart_item_model.dart';
 import 'package:shop_easy/features/home/bloc/product_bloc.dart';
 import 'package:shop_easy/features/home/data/repositories/product_repository.dart';
@@ -32,12 +33,13 @@ class MainApp extends StatelessWidget {
               ProductBloc(ProductRepository())..add(LoadProductsEvent()),
         ),
         BlocProvider(create: (_) => BottomNavCubit()),
+        BlocProvider(create: (_) => CartBloc()),
       ],
       child: MaterialApp(
         navigatorObservers: [routeObserver],
         debugShowCheckedModeBanner: false,
         home: SplashScreen(),
-        routes: AppRoutes.routes,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
       ),
     );
   }
